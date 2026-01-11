@@ -9,6 +9,12 @@ export async function POST(req: NextRequest) {
   // Read raw body for signature verification
   const rawBody = await req.text();
 
+  // Log incoming headers for debugging
+  console.log('Incoming Headers:', {
+    signature: req.headers.get('x-signature-ed25519'),
+    timestamp: req.headers.get('x-signature-timestamp'),
+  });
+
   const signature = req.headers.get('x-signature-ed25519')!;
   const timestamp = req.headers.get('x-signature-timestamp')!;
 

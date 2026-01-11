@@ -74,8 +74,8 @@ Best regards,
 Abdul Moiz`
 ,  attachments: [
           {
-            filename: 'resume.pdf',
-            path: '/Abdul Moiz.pdf',
+            filename: 'Abdul_Moiz_Resume.pdf',
+            path: path.join(process.cwd(), 'public', 'Abdul Moiz.pdf'),
           },
         ],
       };

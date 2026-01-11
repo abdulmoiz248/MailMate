@@ -25,22 +25,38 @@ export async function POST(req: NextRequest) {
 
   if (type === 2 && data.name === 'emailresume') {
     try {
-      const linkedinPostUrl = data.options[0].value;
+      const input = data.options[0].value;
       const username = member.user.username;
 
-      console.log(`Received /emailresume command from ${username} for URL: ${linkedinPostUrl}`);
+      console.log(`Received /emailresume command from ${username} for input: ${input}`);
 
-    //   // Fetch LinkedIn post HTML
-    //   const res = await fetch(linkedinPostUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-    //   const html = await res.text();
+      // Email regex for validation
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}$/;
+      
+      let hrEmails: string[] = [];
 
-    //   // Extract email from post content
-    //   const emailMatch = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}/);
-    const emailMatch = linkedinPostUrl
-      if (!emailMatch) throw new Error('No email found in post');
+      // Check if input is an email or LinkedIn post URL
+      if (emailRegex.test(input)) {
+        // Direct email provided
+        console.log('Direct email detected:', input);
+        hrEmails = [input];
+      } else if (input.includes('linkedin.com')) {
+        // LinkedIn post URL - extract emails from post
+        console.log('LinkedIn post URL detected, fetching content...');
+        const res = await fetch(input, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+        const html = await res.text();
 
-      const hrEmail = emailMatch
-      console.log('Extracted HR Email:', hrEmail);
+        // Extract all emails from post content
+        const emailMatches = html.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}/g);
+        if (!emailMatches || emailMatches.length === 0) {
+          throw new Error('No emails found in LinkedIn post');
+        }
+
+        hrEmails = [...new Set(emailMatches)]; // Remove duplicates
+        console.log('Extracted emails from post:', hrEmails);
+      } else {
+        throw new Error('Invalid input. Please provide either an email or a LinkedIn post URL');
+      }
 
       // Nodemailer setup (using Gmail for example)
       const transporter = nodemailer.createTransport({
@@ -54,12 +70,9 @@ export async function POST(req: NextRequest) {
       
       const mailOptions = {
         from: process.env.SMTP_USER!,
-        to: hrEmail,
+        to: hrEmails.join(', '), // Send to all extracted emails
         subject: `Resume of Abdul Moiz `,
-      text: `Hello,
-
-Please find attached my resume for consideration.
-
+      text: `
 Dear Hiring Manager,
 
 I’m Abdul Moiz, a programmer and freelancer with hands-on experience building real-world applications, not just classroom projects. I work across modern web stacks and backend systems, and I’m comfortable taking ownership of features end to end.
@@ -74,7 +87,7 @@ Best regards,
 Abdul Moiz`
 ,  attachments: [
           {
-            filename: 'Abdul_Moiz_Resume.pdf',
+            filename: 'AbdulMoiz.pdf',
             path: path.join(process.cwd(), 'public', 'Abdul Moiz.pdf'),
           },
         ],
@@ -84,7 +97,7 @@ Abdul Moiz`
 
       return NextResponse.json({
         type: 4,
-        data: { content: `Resume sent successfully to ${hrEmail} ✅`, flags: 64 },
+        data: { content: `Resume sent successfully to ${hrEmails.length} email(s): ${hrEmails.join(', ')} ✅`, flags: 64 },
       });
     } catch (err) {
       console.error('Error sending resume:', err);

@@ -51,9 +51,7 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      // Path to resume.pdf in /public
-      const resumePath = path.join(process.cwd(), 'public', 'resume.pdf');
-
+      
       const mailOptions = {
         from: process.env.SMTP_USER!,
         to: hrEmail,
@@ -77,7 +75,7 @@ Abdul Moiz`
 ,  attachments: [
           {
             filename: 'resume.pdf',
-            path: resumePath,
+            path: '/resume.pdf',
           },
         ],
       };

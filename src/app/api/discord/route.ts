@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   const timestamp = req.headers.get('x-signature-timestamp')!;
 
   // Verify Discord request
-  const isValid = verifyKey(rawBody, signature, timestamp, DISCORD_PUBLIC_KEY);
+  const isValid = await verifyKey(rawBody, signature, timestamp, DISCORD_PUBLIC_KEY);
   console.log('Signature Verification Result:', isValid);
   
   if (!isValid) {

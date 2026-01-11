@@ -14,21 +14,30 @@ export async function POST(req: NextRequest) {
     signature: req.headers.get('x-signature-ed25519'),
     timestamp: req.headers.get('x-signature-timestamp'),
   });
+  console.log('Raw Body:', rawBody);
 
   const signature = req.headers.get('x-signature-ed25519')!;
   const timestamp = req.headers.get('x-signature-timestamp')!;
 
   // Verify Discord request
-  if (!verifyKey(rawBody, signature, timestamp, DISCORD_PUBLIC_KEY)) {
+  const isValid = verifyKey(rawBody, signature, timestamp, DISCORD_PUBLIC_KEY);
+  console.log('Signature Verification Result:', isValid);
+  
+  if (!isValid) {
+    console.error('Invalid request signature');
     return NextResponse.json({ error: 'Invalid request signature' }, { status: 401 });
   }
 
   // Parse JSON AFTER verification
   const body = JSON.parse(rawBody);
   const { type, data, member } = body;
+  console.log('Request Type:', type);
 
   // Respond to PING (Discord validation)
-  if (type === 1) return NextResponse.json({ type: 1 });
+  if (type === 1) {
+    console.log('PING received, responding with type 1');
+    return NextResponse.json({ type: 1 });
+  }
 
   // Handle /emailresume command
   if (type === 2 && data.name === 'emailresume') {

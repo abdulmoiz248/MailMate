@@ -75,7 +75,7 @@ Abdul Moiz`
 ,  attachments: [
           {
             filename: 'resume.pdf',
-            path: '/resume.pdf',
+            path: '/Abdul Moiz.pdf',
           },
         ],
       };
